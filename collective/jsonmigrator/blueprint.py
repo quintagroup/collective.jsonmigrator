@@ -23,6 +23,14 @@ from Products.CMFCore.utils import getToolByName
 from Products.Archetypes.interfaces import IBaseObject
 from AccessControl.interfaces import IRoleManager
 
+
+from plone.portlets.interfaces import ILocalPortletAssignable, IPortletManager,\
+    IPortletAssignmentMapping, IPortletAssignment, ILocalPortletAssignmentManager
+from zope.component import getUtilitiesFor, queryMultiAdapter, getUtility, \
+    getMultiAdapter, adapts
+from zope.component.interfaces import IFactory
+from plone.app.portlets.interfaces import IPortletTypeInterface
+
 DATAFIELD = '_datafield_'
 STATISTICSFIELD = '_statistics_field_prefix_'
 
@@ -528,3 +536,65 @@ class DataFields(object):
                         field.set(obj, value)
 
             yield item
+
+class Portlet(object):
+    """ """
+    classProvides(ISectionBlueprint)
+    implements(ISection)
+
+    def __init__(self, transmogrifier, name, options, previous):
+        self.transmogrifier = transmogrifier
+        self.name = name
+        self.options = options
+        self.previous = previous
+        self.context = transmogrifier.context
+
+        if 'path-key' in options:
+            pathkeys = options['path-key'].splitlines()
+        else:
+            pathkeys = defaultKeys(options['blueprint'], name, 'path')
+        self.pathkey = Matcher(*pathkeys)
+
+    def __iter__(self):
+        for item in self.previous:
+            pathkey = self.pathkey(*item.keys())[0]
+
+            if not pathkey:                     # not enough info
+                yield item; continue
+
+            obj = self.context.unrestrictedTraverse(item[pathkey].lstrip('/'), None)
+            if obj is None:                     # path doesn't exist
+                yield item; continue
+
+            if ILocalPortletAssignable.providedBy(obj) and 'portlets' in item.keys():
+                # drop old portlets
+                for name, portletManager in getUtilitiesFor(IPortletManager):
+                    assignable = queryMultiAdapter((obj, portletManager), IPortletAssignmentMapping)
+                    if assignable is not None:
+                        for key in list(assignable.keys()):
+                            del assignable[key]
+
+                for portlet in item['portlets']['assignments']:
+                    #import pdb;pdb.set_trace()
+                    if portlet['manager'] in ['plone.belowcontentbody','plone.abovecontentbody', 'plone.portalfooter','plone.portaltop']:
+                        continue
+                    manager = getUtility(IPortletManager, portlet['manager'])
+                    mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
+                    if mapping is None:
+                        return
+
+                    portlet_factory = getUtility(IFactory, name=portlet['type'])
+                    assignment = portlet_factory()
+                    assignment = assignment.__of__(obj)
+                    portlet_interface = getUtility(IPortletTypeInterface, name=portlet['type'])
+
+                    manager = getUtility(IPortletManager, portlet['manager'])
+                    mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
+                    mapping[portlet['name']] = assignment
+                    for field_name in portlet_interface:
+                        field = portlet_interface[field_name]
+                        field = field.bind(assignment)
+                        field.set(assignment, portlet['properties'][field_name])
+
+
+

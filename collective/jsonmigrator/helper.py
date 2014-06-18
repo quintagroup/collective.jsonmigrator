@@ -148,7 +148,8 @@ class JSONMigratorConfigurations(object):
 
     def __call__(self, context):
         terms = []
-        for conf_id in configuration_registry.listConfigurationIds():
+        #import pdb;pdb.set_trace()
+        for conf_id in configuration_registry.listConfigurationIds()[3:]:
             conf_file = _load_config(conf_id)
             for section_id in conf_file.keys():
                 section = conf_file[section_id]
