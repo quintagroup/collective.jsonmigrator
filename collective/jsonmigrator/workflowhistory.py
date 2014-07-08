@@ -49,8 +49,7 @@ class WorkflowHistory(object):
             obj = self.context.unrestrictedTraverse(item[pathkey].lstrip('/'), None)
             if obj is None or not getattr(obj, 'workflow_history', False):
                 yield item; continue
-
-            if IBaseObject.providedBy(obj):
+            if 1==1: #IBaseObject.providedBy(obj):
                 item_tmp = item
 
                 # get back datetime stamp and set the workflow history
