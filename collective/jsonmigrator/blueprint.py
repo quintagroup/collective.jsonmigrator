@@ -573,28 +573,28 @@ class Portlet(object):
                     if assignable is not None:
                         for key in list(assignable.keys()):
                             del assignable[key]
+                if 'assignments' in item['portlets'].keys():
+                    for portlet in item['portlets']['assignments']:
+                        #import pdb;pdb.set_trace()
+                        if portlet['manager'] in ['plone.belowcontentbody','plone.abovecontentbody', 'plone.portalfooter','plone.portaltop']:
+                            continue
+                        manager = getUtility(IPortletManager, portlet['manager'])
+                        mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
+                        if mapping is None:
+                            return
 
-                for portlet in item['portlets']['assignments']:
-                    #import pdb;pdb.set_trace()
-                    if portlet['manager'] in ['plone.belowcontentbody','plone.abovecontentbody', 'plone.portalfooter','plone.portaltop']:
-                        continue
-                    manager = getUtility(IPortletManager, portlet['manager'])
-                    mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
-                    if mapping is None:
-                        return
+                        portlet_factory = getUtility(IFactory, name=portlet['type'])
+                        assignment = portlet_factory()
+                        assignment = assignment.__of__(obj)
+                        portlet_interface = getUtility(IPortletTypeInterface, name=portlet['type'])
 
-                    portlet_factory = getUtility(IFactory, name=portlet['type'])
-                    assignment = portlet_factory()
-                    assignment = assignment.__of__(obj)
-                    portlet_interface = getUtility(IPortletTypeInterface, name=portlet['type'])
-
-                    manager = getUtility(IPortletManager, portlet['manager'])
-                    mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
-                    mapping[portlet['name']] = assignment
-                    for field_name in portlet_interface:
-                        field = portlet_interface[field_name]
-                        field = field.bind(assignment)
-                        field.set(assignment, portlet['properties'][field_name])
+                        manager = getUtility(IPortletManager, portlet['manager'])
+                        mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
+                        mapping[portlet['name']] = assignment
+                        for field_name in portlet_interface:
+                            field = portlet_interface[field_name]
+                            field = field.bind(assignment)
+                            field.set(assignment, portlet['properties'][field_name])
 
 
 

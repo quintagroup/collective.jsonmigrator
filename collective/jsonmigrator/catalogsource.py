@@ -8,7 +8,7 @@ from zope.interface import classProvides, implements
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from collective.jsonmigrator import logger
-
+import requests
 
 class CatalogSourceSection(object):
     """A source section which creates items from a remote Plone site by
@@ -99,6 +99,9 @@ class QueuedItemLoader(threading.Thread):
 
         self.queue = []
         self.finished = len(paths) == 0
+        self.ss = requests.Session()
+        self.ss.auth =('admin','12345')
+        self.ss.headers.update({'x-test': 'true'})
 
     def __iter__(self):
         while not self.finished or len(self.queue) > 0:
@@ -128,14 +131,15 @@ class QueuedItemLoader(threading.Thread):
 
     def _load_path(self, path):
         item_url = '%s%s/get_item' % (self.remote_url, urllib.quote(path))
+
         try:
-            f = urllib2.urlopen(item_url)
-            item_json = f.read()
+            #f = urllib2.urlopen(item_url)
+            item_json = self.ss.get(item_url).json() #f.read()
         except urllib2.URLError, e:
             logger.error("Failed reading item from %s. %s" % (item_url, str(e)))
             return None
         try:
-            item = simplejson.loads(item_json)
+            item = item_json #simplejson.loads(item_json)
         except simplejson.JSONDecodeError:
             logger.error("Could not decode item from %s." % item_url)
             return None
