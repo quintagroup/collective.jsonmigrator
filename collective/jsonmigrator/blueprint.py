@@ -33,9 +33,11 @@ from plone.app.portlets.interfaces import IPortletTypeInterface
 
 try:
     from plone.multilingual.interfaces import ITranslationManager
+    from plone.multilingual.interfaces import ILanguageRootFolder
 except:
-    from plone.app.multilingual.interfaces import ITranslationManager    
-
+    from plone.app.multilingual.interfaces import ITranslationManager
+    from plone.app.multilingual.interfaces import ILanguageRootFolder    
+from plone.dexterity.interfaces import IDexterityItem
 
 DATAFIELD = '_datafield_'
 STATISTICSFIELD = '_statistics_field_prefix_'
@@ -568,7 +570,7 @@ class Portlet(object):
             if not pathkey:                     # not enough info
                 yield item; continue
 
-            obj = self.context.unrestrictedTraverse(item[pathkey].lstrip('/'), None)
+            obj = self.context.unrestrictedTraverse(str(item[pathkey]).lstrip('/'), None)
             if obj is None:                     # path doesn't exist
                 yield item; continue
 
@@ -581,7 +583,7 @@ class Portlet(object):
                             del assignable[key]
                 if 'assignments' in item['portlets'].keys():
                     for portlet in item['portlets']['assignments']:
-                        #import pdb;pdb.set_trace()
+                        
                         if portlet['manager'] in ['plone.belowcontentbody','plone.abovecontentbody', 'plone.portalfooter','plone.portaltop']:
                             continue
                         manager = getUtility(IPortletManager, portlet['manager'])
@@ -620,23 +622,32 @@ class Translation(object):
         else:
             pathkeys = defaultKeys(options['blueprint'], name, 'path')
         self.pathkey = Matcher(*pathkeys)
-        self.portal = self.context.getSite()
+        self.portal = self.context.portal_url.getPortalObject()
 
     def __iter__(self):
         for item in self.previous:
             pathkey = self.pathkey(*item.keys())[0]
-
             if not pathkey:                     # not enough info
                 yield item; continue
 
-            obj = self.context.unrestrictedTraverse(item[pathkey].lstrip('/'), None)
+            obj = self.context.unrestrictedTraverse(str(item[pathkey]).lstrip('/'), None)
             if obj is None:                     # path doesn't exist
                 yield item; continue
-            tm = ITranslationManager(obj)
+            if ILanguageRootFolder.providedBy(obj):
+                yield item; continue
+            try:
+                tm = ITranslationManager(obj)
+            except:
+                import pdb; pdb.set_trace()
+                continue
+            #if item['id'] == "beamlines":
+            #    import pdb; pdb.set_trace()
             for lang in item['translations'].keys():
                 if not tm.has_translation(lang):
-                    ipath = item['translations'][lang][0].replace('/cells', '')
+                    ipath = str(item['translations'][lang][0].replace('/cells/', ''))
                     trans = self.portal.unrestrictedTraverse(ipath, None)
+                    if trans and not IDexterityItem.providedBy(trans):
+                        continue
                     if trans:
                         tm.register_translation(lang, trans)
 
