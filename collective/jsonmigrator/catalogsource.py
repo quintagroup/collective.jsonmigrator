@@ -83,7 +83,16 @@ class CatalogSourceSection(object):
             if not item:
                 continue
 
-            item['_path'] = item['_path'][self.site_path_length:]
+            item['_path'] = str(item['_path'][self.site_path_length:])
+            if item.has_key('query'):
+                import pdb; pdb.set_trace()
+                res = []
+                for query in item['query']:
+                    qq = {}
+                    for opt in query:
+                        qq[opt[0]] = opt[1]
+                    res.append(qq)
+                item['query'] = res
             yield item
 
 
@@ -134,12 +143,12 @@ class QueuedItemLoader(threading.Thread):
 
         try:
             #f = urllib2.urlopen(item_url)
-            item_json = self.ss.get(item_url).json() #f.read()
+            item_json = self.ss.get(item_url).content #json() #f.read()
         except urllib2.URLError, e:
             logger.error("Failed reading item from %s. %s" % (item_url, str(e)))
             return None
         try:
-            item = item_json #simplejson.loads(item_json)
+            item = simplejson.loads(item_json)
         except simplejson.JSONDecodeError:
             logger.error("Could not decode item from %s." % item_url)
             return None
