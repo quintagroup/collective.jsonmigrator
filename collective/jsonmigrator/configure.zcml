@@ -85,6 +85,11 @@
         name="collective.jsonmigrator.portlet"
         />
 
+    <utility
+        component=".blueprint.Translation"
+        name="collective.jsonmigrator.translation"
+        />
+
     <transmogrifier:registerConfig
         name="collective.jsonmigrator.plone25"
         title="Migration configuration for Plone 2.5 content types"

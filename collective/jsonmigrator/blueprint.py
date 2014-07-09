@@ -31,6 +31,12 @@ from zope.component import getUtilitiesFor, queryMultiAdapter, getUtility, \
 from zope.component.interfaces import IFactory
 from plone.app.portlets.interfaces import IPortletTypeInterface
 
+try:
+    from plone.multilingual.interfaces import ITranslationManager
+except:
+    from plone.app.multilingual.interfaces import ITranslationManager    
+
+
 DATAFIELD = '_datafield_'
 STATISTICSFIELD = '_statistics_field_prefix_'
 
@@ -596,5 +602,42 @@ class Portlet(object):
                             field = field.bind(assignment)
                             field.set(assignment, portlet['properties'][field_name])
 
+
+class Translation(object):
+    """ """
+    classProvides(ISectionBlueprint)
+    implements(ISection)
+
+    def __init__(self, transmogrifier, name, options, previous):
+        self.transmogrifier = transmogrifier
+        self.name = name
+        self.options = options
+        self.previous = previous
+        self.context = transmogrifier.context
+
+        if 'path-key' in options:
+            pathkeys = options['path-key'].splitlines()
+        else:
+            pathkeys = defaultKeys(options['blueprint'], name, 'path')
+        self.pathkey = Matcher(*pathkeys)
+        self.portal = self.context.getSite()
+
+    def __iter__(self):
+        for item in self.previous:
+            pathkey = self.pathkey(*item.keys())[0]
+
+            if not pathkey:                     # not enough info
+                yield item; continue
+
+            obj = self.context.unrestrictedTraverse(item[pathkey].lstrip('/'), None)
+            if obj is None:                     # path doesn't exist
+                yield item; continue
+            tm = ITranslationManager(obj)
+            for lang in item['translations'].keys():
+                if not tm.has_translation(lang):
+                    ipath = item['translations'][lang][0].replace('/cells', '')
+                    trans = self.portal.unrestrictedTraverse(ipath, None)
+                    if trans:
+                        tm.register_translation(lang, trans)
 
 
