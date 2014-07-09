@@ -37,7 +37,10 @@ try:
 except:
     from plone.app.multilingual.interfaces import ITranslationManager
     from plone.app.multilingual.interfaces import ILanguageRootFolder    
+
 from plone.dexterity.interfaces import IDexterityItem
+from collective.panels.traversal import PanelManager
+from collective.panels.content import Panel
 
 DATAFIELD = '_datafield_'
 STATISTICSFIELD = '_statistics_field_prefix_'
@@ -585,20 +588,27 @@ class Portlet(object):
                     for portlet in item['portlets']['assignments']:
                         
                         if portlet['manager'] in ['plone.belowcontentbody','plone.abovecontentbody', 'plone.portalfooter','plone.portaltop']:
-                            continue
-                        manager = getUtility(IPortletManager, portlet['manager'])
-                        mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
+                            #import pdb;pdb.set_trace()
+                            panels = PanelManager(obj, obj.REQUEST, obj, portlet['manager']).__of__(obj)
+                            if not portlet['panel'] in panels._mapping.keys():
+                                panel = Panel(str(portlet['panel']), layout=portlet['layout'])
+                                aq_base(panels._mapping)[panel.__name__] = panel
+                                #panels.addPanel(str(portlet['panel']))
+                            mapping = panels._mapping[portlet['panel']]
+                        else:
+                            manager = getUtility(IPortletManager, portlet['manager'])
+                            mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
                         if mapping is None:
                             return
 
                         portlet_factory = getUtility(IFactory, name=portlet['type'])
                         assignment = portlet_factory()
+                        mapping[portlet['name']] = assignment
                         assignment = assignment.__of__(obj)
                         portlet_interface = getUtility(IPortletTypeInterface, name=portlet['type'])
 
-                        manager = getUtility(IPortletManager, portlet['manager'])
-                        mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
-                        mapping[portlet['name']] = assignment
+                        #manager = getUtility(IPortletManager, portlet['manager'])
+                        #mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
                         for field_name in portlet_interface:
                             field = portlet_interface[field_name]
                             field = field.bind(assignment)
