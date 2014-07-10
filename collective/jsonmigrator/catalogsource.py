@@ -93,6 +93,18 @@ class CatalogSourceSection(object):
                         qq[opt[0]] = opt[1]
                     res.append(qq)
                 item['query'] = res
+            if item.has_key('effectiveDate'):
+                item['effective'] = item['effectiveDate']
+            if item.has_key('expirationDate'):
+                item['expires'] = item['expirationDate']
+            if item.has_key('allowDiscussion'):
+                item['allow_discussion'] = item['allowDiscussion']
+            if item.has_key('excludeFromNav'):
+                item['exclude_from_nav'] = item['excludeFromNav']
+            if item.has_key('subject'):
+                item['subjects'] = item['subject']
+            if item.has_key('_atrefs'):
+                item['relatedItems'] = item['_atrefs']
             yield item
 
 

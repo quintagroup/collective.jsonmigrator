@@ -51,7 +51,6 @@ class WorkflowHistory(object):
                 yield item; continue
             if 1==1: #IBaseObject.providedBy(obj):
                 item_tmp = item
-
                 # get back datetime stamp and set the workflow history
                 for workflow in item_tmp[workflowhistorykey]:
                     for k, workflow2 in enumerate(item_tmp[workflowhistorykey][workflow]):
