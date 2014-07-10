@@ -85,7 +85,6 @@ class CatalogSourceSection(object):
 
             item['_path'] = str(item['_path'][self.site_path_length:])
             if item.has_key('query'):
-                import pdb; pdb.set_trace()
                 res = []
                 for query in item['query']:
                     qq = {}
@@ -94,9 +93,9 @@ class CatalogSourceSection(object):
                     res.append(qq)
                 item['query'] = res
             if item.has_key('effectiveDate'):
-                item['effective'] = item['effectiveDate']
+                item['effective'] = str(item['effectiveDate'])
             if item.has_key('expirationDate'):
-                item['expires'] = item['expirationDate']
+                item['expires'] = str(item['expirationDate'])
             if item.has_key('allowDiscussion'):
                 item['allow_discussion'] = item['allowDiscussion']
             if item.has_key('excludeFromNav'):
