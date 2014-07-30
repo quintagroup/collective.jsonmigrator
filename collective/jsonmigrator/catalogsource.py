@@ -1,4 +1,4 @@
-import base64
+    import base64
 import simplejson
 import threading
 import time
@@ -34,9 +34,9 @@ class CatalogSourceSection(object):
         catalog_query = ' '.join(catalog_query.split())
         catalog_query = base64.b64encode(catalog_query)
 
-        self.remote_skip_paths = self.get_option('remote-skip-paths',
+        remote_skip_paths = self.get_option('remote-skip-paths',
                                                  '').split()
-        self.queue_length = int(self.get_option('queue-size', '10'))
+        queue_length = int(self.get_option('queue-size', '10'))
 
         # Install a basic auth handler
         auth_handler = urllib2.HTTPBasicAuthHandler()
@@ -49,11 +49,12 @@ class CatalogSourceSection(object):
 
         req = urllib2.Request('%s%s/get_catalog_results' % (self.remote_url,
             catalog_path), urllib.urlencode({'catalog_query': catalog_query}))
-        try:
-            f = urllib2.urlopen(req)
-            resp = f.read()
-        except urllib2.URLError:
-            raise
+        self.session = requests.Session()
+        self.session.auth =(remote_username, remote_password)
+        self.session.headers.update({'x-test': 'true'})
+        resp = self.session.get('%s%s/get_catalog_results' % (self.remote_url,catalog_path),
+            params={'catalog_query': catalog_query},verify=False).content
+ 
 
         self.item_paths = sorted(simplejson.loads(resp))
 
@@ -76,7 +77,8 @@ class CatalogSourceSection(object):
             yield item
 
         queue = QueuedItemLoader(self.remote_url, self.item_paths,
-                                 self.remote_skip_paths, self.queue_length)
+                                 self.remote_skip_paths, self.queue_length,
+                                 self.session)
         queue.start()
 
         for item in queue:
@@ -109,7 +111,7 @@ class CatalogSourceSection(object):
 
 class QueuedItemLoader(threading.Thread):
 
-    def __init__(self, remote_url, paths, remote_skip_paths, queue_length):
+    def __init__(self, remote_url, paths, remote_skip_paths, queue_length, session):
         super(QueuedItemLoader, self).__init__()
 
         self.remote_url = remote_url
@@ -119,9 +121,8 @@ class QueuedItemLoader(threading.Thread):
 
         self.queue = []
         self.finished = len(paths) == 0
-        self.ss = requests.Session()
-        self.ss.auth =('admin','12345')
-        self.ss.headers.update({'x-test': 'true'})
+        self.session = session
+
 
     def __iter__(self):
         while not self.finished or len(self.queue) > 0:
@@ -154,7 +155,7 @@ class QueuedItemLoader(threading.Thread):
 
         try:
             #f = urllib2.urlopen(item_url)
-            item_json = self.ss.get(item_url).content #json() #f.read()
+            item_json = self.session.get(item_url, verify=False).content #json() #f.read()
         except urllib2.URLError, e:
             logger.error("Failed reading item from %s. %s" % (item_url, str(e)))
             return None
