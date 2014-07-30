@@ -32,7 +32,7 @@ class LocalRoles(object):
         if 'local-roles-key' in options:
             roleskeys = options['local-roles-key'].splitlines()
         else:
-            roleskeys = defaultKeys(options['blueprint'], name, 'ac_local_roles')
+            roleskeys = defaultKeys(options['blueprint'], name, 'local_roles')
         self.roleskey = Matcher(*roleskeys)
 
     def __iter__(self):

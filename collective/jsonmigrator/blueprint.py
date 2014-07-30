@@ -588,12 +588,10 @@ class Portlet(object):
                     for portlet in item['portlets']['assignments']:
                         
                         if portlet['manager'] in ['plone.belowcontentbody','plone.abovecontentbody', 'plone.portalfooter','plone.portaltop']:
-                            #import pdb;pdb.set_trace()
                             panels = PanelManager(obj, obj.REQUEST, obj, portlet['manager']).__of__(obj)
                             if not portlet['panel'] in panels._mapping.keys():
                                 panel = Panel(str(portlet['panel']), layout=portlet['layout'])
                                 aq_base(panels._mapping)[panel.__name__] = panel
-                                #panels.addPanel(str(portlet['panel']))
                             mapping = panels._mapping[portlet['panel']]
                         else:
                             manager = getUtility(IPortletManager, portlet['manager'])
@@ -607,12 +605,13 @@ class Portlet(object):
                         assignment = assignment.__of__(obj)
                         portlet_interface = getUtility(IPortletTypeInterface, name=portlet['type'])
 
-                        #manager = getUtility(IPortletManager, portlet['manager'])
-                        #mapping = getMultiAdapter((obj, manager), IPortletAssignmentMapping)
                         for field_name in portlet_interface:
                             field = portlet_interface[field_name]
                             field = field.bind(assignment)
-                            field.set(assignment, portlet['properties'][field_name])
+                            if field_name == 'text':
+                                field.set(assignment, unicode(portlet['properties'][field_name]))
+                            else:
+                                field.set(assignment, portlet['properties'][field_name])
 
 
 class Translation(object):
