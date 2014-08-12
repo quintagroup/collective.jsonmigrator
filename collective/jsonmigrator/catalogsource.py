@@ -111,8 +111,20 @@ class CatalogSourceSection(object):
                 item['start'] = DateTime(item['startDate']).utcdatetime()
             if item.has_key('endDate'):
                 item['end'] = DateTime(item['endDate']).utcdatetime()
+            """
+            if item.has_key('language') and item['language'] == 'es-es':
+                item['language'] = 'es'
+            if item.has_key('translations') and item['translations'].has_key('es-es'):
+                item['translations']['es'] = item['translations']['es-es']
+                item['translations']['es'][0] = item['translations']['es'][0].replace('es-es', 'es')
+                del item['translations']['es-es']
+            if item['_path'].find('es-es') > 0:
+                item['_path'] = item['_path'].replace('es-es','es')
+            for portlet in item['portlets']['assignments']:
+                if portlet['key'].find('es-es') > 0:
+                    item['key'] = item['key'].replace('es-es','es')
+            """
             yield item
-
 
 class QueuedItemLoader(threading.Thread):
 
@@ -157,7 +169,8 @@ class QueuedItemLoader(threading.Thread):
 
     def _load_path(self, path):
         item_url = '%s%s/get_item' % (self.remote_url, urllib.quote(path))
-
+        if path == '/es' or path.startswith('/es/'):
+            return None
         try:
             #f = urllib2.urlopen(item_url)
             item_json = self.session.get(item_url, verify=False).content #json() #f.read()
@@ -165,7 +178,7 @@ class QueuedItemLoader(threading.Thread):
             logger.error("Failed reading item from %s. %s" % (item_url, str(e)))
             return None
         try:
-            item = simplejson.loads(item_json)
+            item = simplejson.loads(item_json.replace('es-es','es'))
         except simplejson.JSONDecodeError:
             logger.error("Could not decode item from %s." % item_url)
             return None
