@@ -652,14 +652,14 @@ class Translation(object):
             except:
                 import pdb; pdb.set_trace()
                 continue
-            #if item['id'] == "beamlines":
+            #if item['id'] == "about":
             #    import pdb; pdb.set_trace()
             for lang in item['translations'].keys():
                 if not tm.has_translation(lang):
                     ipath = str(item['translations'][lang][0].replace('/cells/', ''))
                     trans = self.portal.unrestrictedTraverse(ipath, None)
-                    if trans and not IDexterityItem.providedBy(trans):
-                        continue
+                    #if trans and not IDexterityItem.providedBy(trans):
+                    #    continue
                     if trans:
                         tm.register_translation(lang, trans)
 
