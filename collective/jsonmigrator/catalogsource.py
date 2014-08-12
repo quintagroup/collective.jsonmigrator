@@ -1,7 +1,8 @@
-    import base64
+import base64
 import simplejson
 import threading
 import time
+from DateTime import DateTime
 import urllib
 import urllib2
 from zope.interface import classProvides, implements
@@ -34,9 +35,9 @@ class CatalogSourceSection(object):
         catalog_query = ' '.join(catalog_query.split())
         catalog_query = base64.b64encode(catalog_query)
 
-        remote_skip_paths = self.get_option('remote-skip-paths',
+        self.remote_skip_paths = self.get_option('remote-skip-paths',
                                                  '').split()
-        queue_length = int(self.get_option('queue-size', '10'))
+        self.queue_length = int(self.get_option('queue-size', '10'))
 
         # Install a basic auth handler
         auth_handler = urllib2.HTTPBasicAuthHandler()
@@ -106,6 +107,10 @@ class CatalogSourceSection(object):
                 item['subjects'] = item['subject']
             if item.has_key('_atrefs'):
                 item['relatedItems'] = item['_atrefs']
+            if item.has_key('startDate'):
+                item['start'] = DateTime(item['startDate']).utcdatetime()
+            if item.has_key('endDate'):
+                item['end'] = DateTime(item['endDate']).utcdatetime()
             yield item
 
 

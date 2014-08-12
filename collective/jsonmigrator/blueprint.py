@@ -611,7 +611,10 @@ class Portlet(object):
                             if field_name == 'text':
                                 field.set(assignment, unicode(portlet['properties'][field_name]))
                             else:
-                                field.set(assignment, portlet['properties'][field_name])
+                                try:
+                                    field.set(assignment, portlet['properties'][field_name])
+                                except:
+                                    pass
 
 
 class Translation(object):
