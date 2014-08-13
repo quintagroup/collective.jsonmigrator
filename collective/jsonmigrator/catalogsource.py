@@ -111,6 +111,12 @@ class CatalogSourceSection(object):
                 item['start'] = DateTime(item['startDate']).utcdatetime()
             if item.has_key('endDate'):
                 item['end'] = DateTime(item['endDate']).utcdatetime()
+            if item['_type'] == 'Link' and not item['_path'].startswith('/') \
+                       and not item['_path'].find('beam')>0:
+                if item['remoteUrl'].startswith('..'):
+                    item['remoteUrl'] = item['remoteUrl'].replace('..','/'+item['language'])
+                else:
+                    item['remoteUrl'] = '/'+item['language']+item['remoteUrl']
             """
             if item.has_key('language') and item['language'] == 'es-es':
                 item['language'] = 'es'
