@@ -10,6 +10,9 @@ from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from collective.jsonmigrator import logger
 import requests
+from zope.component import getUtility
+from plone.app.redirector.interfaces import IRedirectionStorage
+
 
 class CatalogSourceSection(object):
     """A source section which creates items from a remote Plone site by
@@ -39,25 +42,24 @@ class CatalogSourceSection(object):
                                                  '').split()
         self.queue_length = int(self.get_option('queue-size', '10'))
 
-        # Install a basic auth handler
-        auth_handler = urllib2.HTTPBasicAuthHandler()
-        auth_handler.add_password(realm='Zope',
-                                  uri=self.remote_url,
-                                  user=remote_username,
-                                  passwd=remote_password)
-        opener = urllib2.build_opener(auth_handler)
-        urllib2.install_opener(opener)
 
-        req = urllib2.Request('%s%s/get_catalog_results' % (self.remote_url,
-            catalog_path), urllib.urlencode({'catalog_query': catalog_query}))
         self.session = requests.Session()
         self.session.auth =(remote_username, remote_password)
         self.session.headers.update({'x-test': 'true'})
-        resp = self.session.get('%s%s/get_catalog_results' % (self.remote_url,catalog_path),
-            params={'catalog_query': catalog_query},verify=False).content
- 
+        self.item_paths = []
+        #import pdb;pdb.set_trace()
+        if self.get_option('catalog-query', None) == 'redirects':
+            resp = self.session.get('%s/get_redirects' % self.remote_url,
+                 verify=False).content.replace('es-es','es')
+            redirects = simplejson.loads(resp)
+            storage = getUtility(IRedirectionStorage)
+            for key in redirects.keys():
+                storage.add(key, redirects[key])
+        else:
+            resp = self.session.get('%s%s/get_catalog_results' % (self.remote_url,catalog_path),
+                params={'catalog_query': catalog_query}, verify=False).content
+            self.item_paths = sorted(simplejson.loads(resp))
 
-        self.item_paths = sorted(simplejson.loads(resp))
 
     def get_option(self, name, default):
         """Get an option from the request if available and fallback to the
@@ -117,19 +119,6 @@ class CatalogSourceSection(object):
                     item['remoteUrl'] = item['remoteUrl'].replace('..','/'+item['language'])
                 else:
                     item['remoteUrl'] = '/'+item['language']+item['remoteUrl']
-            """
-            if item.has_key('language') and item['language'] == 'es-es':
-                item['language'] = 'es'
-            if item.has_key('translations') and item['translations'].has_key('es-es'):
-                item['translations']['es'] = item['translations']['es-es']
-                item['translations']['es'][0] = item['translations']['es'][0].replace('es-es', 'es')
-                del item['translations']['es-es']
-            if item['_path'].find('es-es') > 0:
-                item['_path'] = item['_path'].replace('es-es','es')
-            for portlet in item['portlets']['assignments']:
-                if portlet['key'].find('es-es') > 0:
-                    item['key'] = item['key'].replace('es-es','es')
-            """
             yield item
 
 class QueuedItemLoader(threading.Thread):
