@@ -35,8 +35,13 @@ try:
     from plone.multilingual.interfaces import ITranslationManager
     from plone.multilingual.interfaces import ILanguageRootFolder
 except:
-    from plone.app.multilingual.interfaces import ITranslationManager
-    from plone.app.multilingual.interfaces import ILanguageRootFolder    
+    try:
+        from plone.app.multilingual.interfaces import ITranslationManager
+        from plone.app.multilingual.interfaces import ILanguageRootFolder    
+    except:
+        ITranslationManager = None
+        ILanguageRootFolder = None
+
 
 from plone.dexterity.interfaces import IDexterityItem
 from collective.panels.traversal import PanelManager
@@ -645,12 +650,14 @@ class Translation(object):
             obj = self.context.unrestrictedTraverse(str(item[pathkey]).lstrip('/'), None)
             if obj is None:                     # path doesn't exist
                 yield item; continue
-            if ILanguageRootFolder.providedBy(obj):
+            if ILanguageRootFolder and ILanguageRootFolder.providedBy(obj):
                 yield item; continue
             try:
-                tm = ITranslationManager(obj)
+                if ITranslationManager:
+                    tm = ITranslationManager(obj)
+                else:
+                    continue
             except:
-                import pdb; pdb.set_trace()
                 continue
             #if item['id'] == "about":
             #    import pdb; pdb.set_trace()
