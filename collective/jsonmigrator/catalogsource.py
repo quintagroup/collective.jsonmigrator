@@ -47,7 +47,7 @@ class CatalogSourceSection(object):
         self.session.auth =(remote_username, remote_password)
         self.session.headers.update({'x-test': 'true'})
         self.item_paths = []
-        #import pdb;pdb.set_trace()
+
         if self.get_option('catalog-query', None) == 'redirects':
             resp = self.session.get('%s/get_redirects' % self.remote_url,
                  verify=False).content.replace('es-es','es')
@@ -56,9 +56,10 @@ class CatalogSourceSection(object):
             for key in redirects.keys():
                 storage.add(key, redirects[key])
         else:
-            resp = self.session.get('%s%s/get_catalog_results' % (self.remote_url,catalog_path),
-                params={'catalog_query': catalog_query}, verify=False).content
-            self.item_paths = sorted(simplejson.loads(resp))
+            url = '%s%s/get_catalog_results' % (self.remote_url,catalog_path)
+            resp = self.session.get(url, params={'catalog_query': catalog_query}, verify=False)
+            data = resp.content
+            self.item_paths = sorted(simplejson.loads(data))
 
 
     def get_option(self, name, default):
@@ -97,6 +98,8 @@ class CatalogSourceSection(object):
                         qq[opt[0]] = opt[1]
                     res.append(qq)
                 item['query'] = res
+            if item.has_key('trashed') and item['trashed']:
+                continue
             if item.has_key('effectiveDate'):
                 item['effective'] = str(item['effectiveDate'])
             if item.has_key('expirationDate'):
@@ -110,9 +113,15 @@ class CatalogSourceSection(object):
             if item.has_key('_atrefs'):
                 item['relatedItems'] = item['_atrefs']
             if item.has_key('startDate'):
-                item['start'] = DateTime(item['startDate']).utcdatetime()
+                if item['startDate'] == 'None':
+                    item['start'] = None
+                else:
+                    item['start'] = DateTime(item['startDate']).utcdatetime()
             if item.has_key('endDate'):
-                item['end'] = DateTime(item['endDate']).utcdatetime()
+                if item['endDate'] == 'None':
+                    item['start'] = None
+                else:
+                    item['end'] = DateTime(item['endDate']).utcdatetime()
             if item['_type'] == 'Link' and not item['remoteUrl'].startswith('/') \
                        and not item['_path'].find('beam')>0:
                 if item['remoteUrl'].startswith('..'):
