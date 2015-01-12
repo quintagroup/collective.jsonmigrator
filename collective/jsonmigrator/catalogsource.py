@@ -122,6 +122,8 @@ class CatalogSourceSection(object):
                     item['start'] = None
                 else:
                     item['end'] = DateTime(item['endDate']).utcdatetime()
+            if item.has_key['atvareas']:
+                item['taxonomy_areas'] = item['atvareas']
             if item['_type'] == 'Link' and not item['remoteUrl'].startswith('/') \
                        and not item['_path'].find('beam')>0:
                 if item['remoteUrl'].startswith('..'):
