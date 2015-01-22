@@ -114,14 +114,18 @@ class CatalogSourceSection(object):
                 item['relatedItems'] = item['_atrefs']
             if item.has_key('startDate'):
                 if item['startDate'] == 'None':
-                    item['start'] = None
+                    item['start_date'] = item['start'] = None
                 else:
-                    item['start'] = DateTime(item['startDate']).utcdatetime()
+                    startDate = DateTime(item['startDate'])
+                    item['start'] = startDate.utcdatetime()
+                    item['start_date'] = startDate.asdatetime().replace(tzinfo=None)
             if item.has_key('endDate'):
                 if item['endDate'] == 'None':
-                    item['start'] = None
+                    item['end_date'] = item['end'] = None
                 else:
-                    item['end'] = DateTime(item['endDate']).utcdatetime()
+                    endDate =  DateTime(item['endDate'])
+                    item['end'] = endDate.utcdatetime()
+                    item['end_date'] = endDate.asdatetime().replace(tzinfo=None)
             if item.has_key('atvareas'):
                 item['taxonomy_areas'] = item['atvareas']
             if item['_type'] == 'Link' and not item['remoteUrl'].startswith('/') \
