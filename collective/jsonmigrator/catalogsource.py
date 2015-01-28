@@ -48,6 +48,8 @@ class CatalogSourceSection(object):
         self.session.headers.update({'x-test': 'true'})
         self.item_paths = []
 
+        self.section = self.get_option('section', None)
+
         if self.get_option('catalog-query', None) == 'redirects':
             resp = self.session.get('%s/get_redirects' % self.remote_url,
                  verify=False).content.replace('es-es','es')
@@ -90,6 +92,11 @@ class CatalogSourceSection(object):
                 continue
 
             item['_path'] = str(item['_path'][self.site_path_length:])
+            if self.section == 'news':
+                item['_path'] = '/news' + item['_path']
+            if self.section == 'events':
+                item['_path'] = '/events' + item['_path']
+            
             if item.has_key('query'):
                 res = []
                 for query in item['query']:
@@ -109,7 +116,13 @@ class CatalogSourceSection(object):
             if item.has_key('excludeFromNav'):
                 item['exclude_from_nav'] = item['excludeFromNav']
             if item.has_key('subject'):
-                item['subjects'] = item['subject']
+                if isinstance(item['subject'], list):
+                    if "".join(item['subject']).find('_') > 0:
+                        item['subject'] = ""
+                elif isinstance(item['subject'], str) and item['subject'].find('_'):
+                    item['subject'] = ""
+                else:
+                    item['subjects'] = item['subject']
             if item.has_key('_atrefs'):
                 item['relatedItems'] = item['_atrefs']
             if item.has_key('startDate'):
