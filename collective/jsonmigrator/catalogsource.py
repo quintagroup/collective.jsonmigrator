@@ -141,6 +141,9 @@ class CatalogSourceSection(object):
                     item['end_date'] = endDate.asdatetime().replace(tzinfo=None)
             if item.has_key('atvareas'):
                 item['taxonomy_areas'] = item['atvareas']
+            if item.has_key('attendees'):
+                if isinstance(item['attendees'], list):
+                    item['attendees'] = '\n'.join(item['attendees'])
             if item['_type'] == 'Link' and not item['remoteUrl'].startswith('/') \
                        and not item['_path'].find('beam')>0:
                 if item['remoteUrl'].startswith('..'):
