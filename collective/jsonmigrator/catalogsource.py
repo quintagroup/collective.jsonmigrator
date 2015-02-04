@@ -14,6 +14,18 @@ from zope.component import getUtility
 from plone.app.redirector.interfaces import IRedirectionStorage
 
 
+SEKTION_MAP = {
+    u'born-og-unge': u'born',
+    u'social-fokus-aeldre': u'aeldre',
+    u'social-fokus-born-unge': u'unge',
+    u'social-fokus-handicap': u'handicap',
+    u'social-fokus-udsat': u'integration',
+    u'tvaerfagligt': u'tvaergaende',
+    u'udsatte': u'integration',
+    u'viso-radgivning': u'integration',
+}
+
+
 class CatalogSourceSection(object):
     """A source section which creates items from a remote Plone site by
        querying it's catalog.
@@ -140,7 +152,7 @@ class CatalogSourceSection(object):
                     item['end'] = endDate.utcdatetime()
                     item['end_date'] = endDate.asdatetime().replace(tzinfo=None)
             if item.has_key('atvareas'):
-                item['taxonomy_areas'] = item['atvareas']
+                item['taxonomy_sektion'] = [SEKTION_MAP.get(i, i) for i in item['atvareas']]
             if item.has_key('attendees'):
                 if isinstance(item['attendees'], list):
                     item['attendees'] = '\n'.join(item['attendees'])
