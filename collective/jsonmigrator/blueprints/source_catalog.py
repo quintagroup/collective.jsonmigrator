@@ -5,12 +5,16 @@ from collective.transmogrifier.interfaces import ISectionBlueprint
 from zope.interface import classProvides, implements
 
 import base64
-import simplejson
 import threading
 import time
 import urllib
 import urllib2
 import requests
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 
 class CatalogSourceSection(object):
@@ -77,6 +81,8 @@ class CatalogSourceSection(object):
 
         self.item_paths = sorted(simplejson.loads(resp))
         """
+        self.item_paths = sorted(json.loads(resp))
+
 
     def get_option(self, name, default):
         """Get an option from the request if available and fallback to the
@@ -161,8 +167,8 @@ class QueuedItemLoader(threading.Thread):
                 (item_url, str(e)))
             return None
         try:
-            item = simplejson.loads(item_json)
-        except simplejson.JSONDecodeError:
+            item = json.loads(item_json)
+        except json.JSONDecodeError:
             logger.error("Could not decode item from %s." % item_url)
             return None
         return item

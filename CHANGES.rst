@@ -1,10 +1,21 @@
 Changelog
 =========
 
-0.4 (unreleased)
+0.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Set default value of config field for jsonmigrator-run view.
+  [bsuttor]
+
+- Fix workflow_history to also work with dexterity
+  [erral, djowett]
+
+
+0.4 (2016-05-24)
+----------------
+
+- Do not require simplejson if we already have the native json module.
+  [ale-rt]
 
 
 0.3 (2015-10-25)
