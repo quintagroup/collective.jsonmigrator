@@ -66,7 +66,7 @@ class CatalogSourceSection(object):
         resp = self.session.get(url, params={'catalog_query': catalog_query}, verify=False)
         data = resp.content
         #import pdb;pdb.set_trace()
-        self.item_paths = sorted(simplejson.loads(data))
+        #self.item_paths = sorted(simplejson.loads(data))
         """
         req = urllib2.Request(
             '%s%s/get_catalog_results' %
@@ -81,7 +81,7 @@ class CatalogSourceSection(object):
 
         self.item_paths = sorted(simplejson.loads(resp))
         """
-        self.item_paths = sorted(json.loads(resp))
+        self.item_paths = sorted(json.loads(data))
 
 
     def get_option(self, name, default):
