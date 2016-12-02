@@ -179,4 +179,14 @@ class QueuedItemLoader(threading.Thread):
         if item.has_key('start_date'):
             item['start'] = item['start_date']
             item['end'] = item['end_date']
+        if item.has.key('audiences'):
+            item['taxonomy_audiences'] = item['audiences']
+        if item.has.key('topics'):
+            item['taxonomy_topics'] = item['topics']
+        if item.has.key('programs'):
+            item['taxonomy_programs'] = item['programs']
+        if item.has.key('services'):
+            item['taxonomy_services'] = item['services']
+        if item.has.key('regions'):
+            item['taxonomy_regions'] = item['regions']
         return item
