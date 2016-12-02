@@ -159,8 +159,7 @@ class QueuedItemLoader(threading.Thread):
         item_url = '%s%s/get_item' % (self.remote_url, urllib.quote(path))
    
         try:
-            #f = urllib2.urlopen(item_url)
-            item_json = self.session.get(item_url, verify=False).content #f.read()
+            item_json = self.session.get(item_url, verify=False).content
         except urllib2.URLError as e:
             logger.error(
                 "Failed reading item from %s. %s" %
@@ -168,8 +167,12 @@ class QueuedItemLoader(threading.Thread):
             return None
         try:
             item = json.loads(item_json)
-        except json.JSONDecodeError:
+        except:
+            import pdb;pdb.set_trace()
             logger.error("Could not decode item from %s." % item_url)
+            return None
+
+        if item['_type'] in ['SimpleVocabulary', 'SimpleTranslatedVocabularyTerm', 'VocabularyLibrary']:
             return None
         if item['_path'].find('portal_vocabulary') > 0:
             return None
