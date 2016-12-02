@@ -171,4 +171,6 @@ class QueuedItemLoader(threading.Thread):
         except json.JSONDecodeError:
             logger.error("Could not decode item from %s." % item_url)
             return None
+        if item['_path'].find('portal_vocabulary') > 0: 
+            return None
         return item
