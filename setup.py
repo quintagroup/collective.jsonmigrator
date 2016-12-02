@@ -8,6 +8,7 @@ description = "JSON based migrations for Plone"
 
 requirements = [
     'setuptools',
+    'requests',
     'collective.transmogrifier>=1.5',
     'plone.app.transmogrifier',
     'zope.app.container',
