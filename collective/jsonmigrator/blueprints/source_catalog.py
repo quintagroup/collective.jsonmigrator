@@ -179,14 +179,13 @@ class QueuedItemLoader(threading.Thread):
             item['start'] = item['start_date']
             item['end'] = item['end_date']
         if item.has_key('audiences'):
-            item['taxonomy_audiences'] = item['audiences']
-            #import pdb;pdb.set_trace()
+            item['taxonomy_audiences'] = eval(item['audiences'])
         if item.has_key('topics'):
-            item['taxonomy_topics'] = item['topics']
+            item['taxonomy_topics'] = eval(item['topics'])
         if item.has_key('programs'):
-            item['taxonomy_programs'] = item['programs']
+            item['taxonomy_programs'] = eval(item['programs'])
         if item.has_key('services'):
-            item['taxonomy_services'] = item['services']
+            item['taxonomy_services'] = eval(item['services'])
         if item.has_key('regions'):
-            item['taxonomy_regions'] = item['regions']
+            item['taxonomy_regions'] = eval(item['regions'])
         return item
