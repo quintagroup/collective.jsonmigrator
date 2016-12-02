@@ -168,7 +168,6 @@ class QueuedItemLoader(threading.Thread):
         try:
             item = json.loads(item_json)
         except:
-            import pdb;pdb.set_trace()
             logger.error("Could not decode item from %s." % item_url)
             return None
 
@@ -179,14 +178,15 @@ class QueuedItemLoader(threading.Thread):
         if item.has_key('start_date'):
             item['start'] = item['start_date']
             item['end'] = item['end_date']
-        if item.has.key('audiences'):
+        if item.has_key('audiences'):
             item['taxonomy_audiences'] = item['audiences']
-        if item.has.key('topics'):
+            #import pdb;pdb.set_trace()
+        if item.has_key('topics'):
             item['taxonomy_topics'] = item['topics']
-        if item.has.key('programs'):
+        if item.has_key('programs'):
             item['taxonomy_programs'] = item['programs']
-        if item.has.key('services'):
+        if item.has_key('services'):
             item['taxonomy_services'] = item['services']
-        if item.has.key('regions'):
+        if item.has_key('regions'):
             item['taxonomy_regions'] = item['regions']
         return item
