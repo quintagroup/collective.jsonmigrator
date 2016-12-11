@@ -176,8 +176,8 @@ class QueuedItemLoader(threading.Thread):
         if item['_path'].find('portal_vocabulary') > 0:
             return None
         if item.has_key('start_date'):
-            item['start'] = item['start_date']
-            item['end'] = item['end_date']
+            item['start'] = item['start_date'] + "+01:00"
+            item['end'] = item['end_date'] + "+01:00"
         if item.has_key('audiences'):
             item['taxonomy_audiences'] = eval(item['audiences'])
         if item.has_key('topics'):
