@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from Acquisition import aq_base
+from Products.CMFPlone.utils import safe_unicode
 from collective.transmogrifier.interfaces import ISection
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.utils import defaultKeys
 from collective.transmogrifier.utils import Matcher
+from collective.transmogrifier.utils import traverse
 from ZODB.POSException import ConflictError
 from zope.interface import classProvides
 from zope.interface import implements
@@ -47,8 +49,9 @@ class Properties(object):
                 yield item
                 continue
 
-            obj = self.context.unrestrictedTraverse(
-                item[pathkey].lstrip('/'), None)
+            path = safe_unicode(item[pathkey].lstrip('/')).encode('ascii')
+            obj = traverse(self.context, path, None)
+
             if obj is None:
                 # path doesn't exist
                 yield item
@@ -63,6 +66,8 @@ class Properties(object):
                     # if object have a attribute equal to property, do nothing
                     continue
 
+                if ptype == 'string':
+                    pvalue = safe_unicode(pvalue).encode('utf-8')
                 try:
                     if obj.hasProperty(pid):
                         obj._updateProperty(pid, pvalue)

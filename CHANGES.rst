@@ -1,7 +1,20 @@
 Changelog
 =========
 
-0.5 (unreleased)
+1.0.2 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
+1.0.1 (2018-06-11)
+------------------
+
+- if certain properties (default page, others?) are unicode they cause site failures.
+  [sunew]
+
+
+1.0 (2017-12-22)
 ----------------
 
 - Set default value of config field for jsonmigrator-run view.
