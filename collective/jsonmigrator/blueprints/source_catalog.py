@@ -37,13 +37,20 @@ class CatalogSourceSection(object):
 
         catalog_path = self.get_option('catalog-path', '/Plone/portal_catalog')
         self.site_path_length = len('/'.join(catalog_path.split('/')[:-1]))
-
+    
+        self.remote_skip_paths = []
         catalog_query = self.get_option('catalog-query', None)
+        if catalog_query.find("skip_paths:") > 0:
+            self.remote_skip_paths = catalog_query[catalog_query.find("skip_paths:")+10:].split(";")
+            catalog_query = catalog_query[:catalog_query.find("skip_paths:")]
+        
         catalog_query = ' '.join(catalog_query.split())
         catalog_query = base64.b64encode(catalog_query)
-
-        self.remote_skip_paths = self.get_option('remote-skip-paths',
-                                                 '').split()
+        
+        import pdb;pdb.set_trace()
+        
+        if not self.remote_skip_paths:
+            self.remote_skip_paths = self.get_option('remote-skip-paths', '').split(';')
         self.queue_length = int(self.get_option('queue-size', '10')) 
         self.session = None
          
@@ -147,8 +154,9 @@ class QueuedItemLoader(threading.Thread):
                 try:
                     item = self._load_path(path)
                 except:
-                    import pdb; pdb.set_trace()
-                    zz=1
+                    pass
+                    # handle broken paths  import pdb; pdb.set_trace()
+                    
                 self.queue.append(item)
 
             if len(self.paths) == 0:
