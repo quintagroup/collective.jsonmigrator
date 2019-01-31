@@ -47,8 +47,6 @@ class CatalogSourceSection(object):
         catalog_query = ' '.join(catalog_query.split())
         catalog_query = base64.b64encode(catalog_query)
         
-        import pdb;pdb.set_trace()
-        
         if not self.remote_skip_paths:
             self.remote_skip_paths = self.get_option('remote-skip-paths', '').split(';')
         self.queue_length = int(self.get_option('queue-size', '10')) 
