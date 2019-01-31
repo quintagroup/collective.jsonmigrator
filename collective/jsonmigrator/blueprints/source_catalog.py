@@ -45,8 +45,9 @@ class CatalogSourceSection(object):
         self.remote_skip_paths = self.get_option('remote-skip-paths',
                                                  '').split()
         self.queue_length = int(self.get_option('queue-size', '10')) 
+        self.session = None
          
-        """
+        
         # Install a basic auth handler
         auth_handler = urllib2.HTTPBasicAuthHandler()
         auth_handler.add_password(realm='Zope',
@@ -55,7 +56,7 @@ class CatalogSourceSection(object):
                                   passwd=remote_password)
         opener = urllib2.build_opener(auth_handler)
         urllib2.install_opener(opener)
-        """
+
 
         self.session = requests.Session()
         self.session.auth =(remote_username, remote_password)
@@ -67,20 +68,20 @@ class CatalogSourceSection(object):
         data = resp.content
         #import pdb;pdb.set_trace()
         #self.item_paths = sorted(simplejson.loads(data))
-        """
-        req = urllib2.Request(
-            '%s%s/get_catalog_results' %
-            (self.remote_url, catalog_path), urllib.urlencode(
-                {
-                    'catalog_query': catalog_query}))
-        try:
-            f = urllib2.urlopen(req)
-            resp = f.read()
-        except urllib2.URLError:
-            raise
-
-        self.item_paths = sorted(simplejson.loads(resp))
-        """
+        
+        #req = urllib2.Request(
+        #    '%s%s/get_catalog_results' %
+        #    (self.remote_url, catalog_path), urllib.urlencode(
+        #        {
+        #            'catalog_query': catalog_query}))
+        #try:
+        #    f = urllib2.urlopen(req)
+        #    resp = f.read()
+        #except urllib2.URLError:
+        #    raise
+        
+        
+        #self.item_paths = sorted(json.loads(resp))
         self.item_paths = sorted(json.loads(data))
 
 
@@ -117,7 +118,7 @@ class CatalogSourceSection(object):
 
 class QueuedItemLoader(threading.Thread):
 
-    def __init__(self, remote_url, paths, remote_skip_paths, queue_length, session):
+    def __init__(self, remote_url, paths, remote_skip_paths, queue_length, session=None):
         super(QueuedItemLoader, self).__init__()
 
         self.remote_url = remote_url
@@ -143,7 +144,11 @@ class QueuedItemLoader(threading.Thread):
 
             path = self.paths.pop(0)
             if not self._skip_path(path):
-                item = self._load_path(path)
+                try:
+                    item = self._load_path(path)
+                except:
+                    import pdb; pdb.set_trace()
+                    zz=1
                 self.queue.append(item)
 
             if len(self.paths) == 0:
@@ -159,8 +164,11 @@ class QueuedItemLoader(threading.Thread):
         item_url = '%s%s/get_item' % (self.remote_url, urllib.quote(path))
    
         try:
-            #f = urllib2.urlopen(item_url)
-            item_json = self.session.get(item_url, verify=False).content #f.read()
+            if not self.session:
+                f = urllib2.urlopen(item_url)
+                item_json = f.read()
+            else:
+                item_json = self.session.get(item_url, verify=False).content #f.read()
         except urllib2.URLError as e:
             logger.error(
                 "Failed reading item from %s. %s" %
